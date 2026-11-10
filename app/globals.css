@@ -1,0 +1,214 @@
+@import "tailwindcss";
+
+/*
+  THEME — edit colours here, nowhere else.
+  Every colour in the app comes from these names (bg-surface, text-text-muted,
+  border-border, bg-brand-primary ...). `static` keeps them all on :root so
+  plain CSS can use var(--color-...) too.
+*/
+@theme static {
+  /* Base Colors */
+  --color-background: #faf8f5; /* Warm champagne paper */
+  --color-surface: #ffffff; /* Card background */
+  --color-text-main: #1a1a1a; /* Deep charcoal body text */
+  --color-text-muted: #736f6e; /* Muted grey for subheaders */
+
+  /* Brand & Accents */
+  --color-brand-primary: #c5a059; /* Champagne gold accent */
+  --color-brand-hover: #a8833e; /* Darker gold for active states */
+  --color-border: #e8e4de; /* Subtle warm divider line */
+
+  /* Interactive Feedback */
+  --color-rating-star: #d4af37; /* Rating star fill */
+  --color-badge-bg: #f0eae1; /* Tag / dosage badge background */
+
+  /* Type */
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino,
+    "Book Antiqua", Georgia, serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", sans-serif;
+
+  /* Motion: a stronger ease-out than the browser default */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+:root {
+  --nav-height: 60px;
+}
+
+html {
+  background: var(--color-background);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-text-main);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+::selection {
+  background: var(--color-badge-bg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+@layer components {
+  /* Anything pressable: instant, subtle feedback on press */
+  .press {
+    transition: transform 140ms var(--ease-out), background-color 140ms ease,
+      color 140ms ease, border-color 140ms ease, opacity 140ms ease;
+    touch-action: manipulation;
+  }
+  .press:active {
+    transform: scale(0.97);
+  }
+  .press:disabled {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  /* Small uppercase label above a heading or field */
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 20px;
+    border-radius: 2px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .btn-primary {
+    background: var(--color-text-main);
+    color: var(--color-background);
+  }
+  .btn-gold {
+    background: var(--color-brand-primary);
+    color: var(--color-text-main);
+  }
+  .btn-quiet {
+    background: transparent;
+    color: var(--color-text-main);
+    border: 1px solid var(--color-border);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-primary:hover {
+      background: #000;
+    }
+    .btn-gold:hover {
+      background: var(--color-brand-hover);
+    }
+    .btn-quiet:hover {
+      border-color: var(--color-text-muted);
+    }
+  }
+
+  .field {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 14px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 2px;
+    font-size: 16px; /* 16px stops iOS zooming on focus */
+    color: var(--color-text-main);
+    transition: border-color 140ms ease;
+  }
+  .field::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.8;
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-brand-primary);
+  }
+  textarea.field {
+    padding: 12px 14px;
+    min-height: 96px;
+    resize: none;
+    line-height: 1.5;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .chip[aria-pressed="true"] {
+    background: var(--color-text-main);
+    border-color: var(--color-text-main);
+    color: var(--color-background);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 2px;
+    background: var(--color-badge-bg);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-main);
+  }
+}
+
+/* Feed entrance: short, staggered, decorative only */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.rise {
+  animation: rise 260ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: fade 200ms ease both;
+    animation-delay: 0ms;
+  }
+  .press:active {
+    transform: none;
+  }
+}
