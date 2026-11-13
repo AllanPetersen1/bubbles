@@ -31,6 +31,7 @@ const draftFrom = (item: FeedItem): CheckInDraft => ({
 });
 
 function errorText(err: unknown) {
+  console.error("[bubbles] check-in change failed", err);
   return err instanceof NotSignedInError
     ? err.message
     : "That did not go through. Check your connection and try again.";

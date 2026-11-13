@@ -3,6 +3,7 @@
 --   * quarter-star ratings
 --   * custom display name / avatar that override the Google values
 --   * reference data (appellations, producer village/sub-region) and the search/suggest functions on it
+--   * storage policies so photo and avatar uploads work (they were failing without them)
 --   * column-level update rights, so owners can edit a check-in's content but not its owner, bottle or date
 
 -- ------------------------------------------------------------------ ratings
@@ -122,6 +123,22 @@ as $$
   order by score desc, kind, label
   limit least(greatest(lim, 1), 20);
 $$;
+
+-- ---------------------------------------------------- photo and avatar uploads
+-- The app uploads with upsert (same bytes, same name: re-uploading is harmless), and Storage
+-- needs select + update permission for that, not only insert. With only the insert and
+-- delete policies from schema.sql every upload fails with
+-- "new row violates row-level security policy". Both new policies stay inside your own folder.
+-- The bucket is public, so image URLs do not depend on them.
+
+drop policy if exists "members read own photos" on storage.objects;
+create policy "members read own photos" on storage.objects for select to authenticated
+  using (bucket_id = 'checkin-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "members update own photos" on storage.objects;
+create policy "members update own photos" on storage.objects for update to authenticated
+  using (bucket_id = 'checkin-photos' and (storage.foldername(name))[1] = auth.uid()::text)
+  with check (bucket_id = 'checkin-photos' and (storage.foldername(name))[1] = auth.uid()::text);
 
 -- ------------------------------------------------------ owner-only editing
 -- RLS already limits updates to your own rows. Column grants additionally stop
