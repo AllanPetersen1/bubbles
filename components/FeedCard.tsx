@@ -1,15 +1,28 @@
+import { formatRating } from "@/lib/rating";
 import type { FeedItem } from "@/lib/types";
 import { timeAgo } from "@/lib/time";
 import Avatar from "./Avatar";
+import ReviewActions from "./ReviewActions";
 import { StarRow } from "./Stars";
 
-export default function FeedCard({ item, index = 0 }: { item: FeedItem; index?: number }) {
+export default function FeedCard({
+  item,
+  index = 0,
+  onChange,
+  onDelete,
+}: {
+  item: FeedItem;
+  index?: number;
+  /** Pass both only for the signed-in author: they switch on the edit and delete buttons. */
+  onChange?: (item: FeedItem) => void;
+  onDelete?: (id: string) => void;
+}) {
   return (
     <article
       className="rise border-b border-border pb-6"
       style={{ "--i": Math.min(index, 6) } as React.CSSProperties}
     >
-      <header className="flex items-center gap-3 px-4 py-3">
+      <header className="flex items-center gap-3 py-1 pr-1 pl-4">
         <Avatar name={item.user.name} url={item.user.avatarUrl} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{item.user.name}</p>
@@ -17,6 +30,13 @@ export default function FeedCard({ item, index = 0 }: { item: FeedItem; index?: 
         <time dateTime={item.createdAt} className="shrink-0 text-xs text-text-muted">
           {timeAgo(item.createdAt)}
         </time>
+        {onChange && onDelete ? (
+          <div className="flex shrink-0">
+            <ReviewActions item={item} onChange={onChange} onDelete={onDelete} />
+          </div>
+        ) : (
+          <span className="w-3" />
+        )}
       </header>
 
       {item.thumbUrl && (
@@ -28,7 +48,7 @@ export default function FeedCard({ item, index = 0 }: { item: FeedItem; index?: 
           width={400}
           height={500}
           loading="lazy"
-          className="aspect-[4/5] w-full bg-badge-bg object-cover"
+          className="aspect-[4/5] w-full bg-badge-bg object-cover lg:aspect-[4/3]"
         />
       )}
 
@@ -43,7 +63,7 @@ export default function FeedCard({ item, index = 0 }: { item: FeedItem; index?: 
 
         <div className="mt-3 flex items-center gap-3">
           <StarRow value={item.rating} size={16} />
-          <span className="text-sm font-semibold tabular-nums">{item.rating.toFixed(1)}</span>
+          <span className="text-sm font-semibold tabular-nums">{formatRating(item.rating)}</span>
           {item.dosage && <span className="badge ml-auto">{item.dosage}</span>}
         </div>
 

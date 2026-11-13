@@ -5,15 +5,30 @@ import { useEffect, useRef, useState } from "react";
 import BottleRow from "@/components/BottleRow";
 import PageHeader, { DemoNote } from "@/components/PageHeader";
 import Scanner from "@/components/Scanner";
-import { bottlesByEan, popularBottles, recentBottles, rememberBottle, searchBottles } from "@/lib/data";
-import type { Bottle, Source } from "@/lib/types";
+import {
+  bottlesByEan,
+  popularBottles,
+  recentBottles,
+  rememberBottle,
+  searchBottles,
+  suggestReference,
+} from "@/lib/data";
+import type { Bottle, ReferenceSuggestion, Source } from "@/lib/types";
 
 type Scan = { ean: string; matches: Bottle[] };
+
+const KIND_LABEL: Record<ReferenceSuggestion["kind"], string> = {
+  producer: "Producer",
+  appellation: "Appellation",
+  area: "Area",
+};
 
 export default function SearchPage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [found, setFound] = useState<{ q: string; items: Bottle[] } | null>(null);
+  const [found, setFound] = useState<{ q: string; items: Bottle[]; suggestions: ReferenceSuggestion[] } | null>(
+    null,
+  );
   const [popular, setPopular] = useState<Bottle[]>([]);
   const [recent, setRecent] = useState<Bottle[]>([]);
   const [scanning, setScanning] = useState(false);
@@ -38,10 +53,10 @@ export default function SearchPage() {
     if (q.length < 2) return;
     const id = ++requestId.current;
     const timer = setTimeout(async () => {
-      const { data, source } = await searchBottles(q);
+      const [bottles, suggested] = await Promise.all([searchBottles(q), suggestReference(q)]);
       if (id !== requestId.current) return;
-      setFound({ q, items: data });
-      setSource(source);
+      setFound({ q, items: bottles.data, suggestions: suggested.data });
+      setSource(bottles.source);
     }, 180);
     return () => clearTimeout(timer);
   }, [query]);
@@ -63,6 +78,9 @@ export default function SearchPage() {
 
   const typed = query.trim().length >= 2;
   const results = typed && found ? found.items : [];
+  // Tapping one searches for it: producers and areas narrow the list, appellations list their bottles
+  const suggestions =
+    typed && found ? found.suggestions.filter((s) => s.label.toLowerCase() !== query.trim().toLowerCase()) : [];
   const searching = typed && found?.q !== query.trim();
   const showScanMatches = scan && scan.matches.length > 0 && !typed;
 
@@ -115,6 +133,27 @@ export default function SearchPage() {
       <div className="mt-2">
         {typed ? (
           <>
+            {suggestions.length > 0 && (
+              <div
+                role="group"
+                aria-label="Suggestions"
+                className="flex gap-2 overflow-x-auto px-4 pt-2 pb-3 [scrollbar-width:none]"
+              >
+                {suggestions.map((s) => (
+                  <button
+                    key={`${s.kind}:${s.label}`}
+                    type="button"
+                    onClick={() => setQuery(s.label)}
+                    className="chip press shrink-0"
+                  >
+                    {s.label}
+                    <span className="ml-2 text-[11px] tracking-[0.08em] text-text-muted uppercase">
+                      {KIND_LABEL[s.kind]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
             {results.length > 0 && (
               <ul>
                 {results.map((b) => (

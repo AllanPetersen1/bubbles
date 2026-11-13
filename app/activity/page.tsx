@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import PageHeader, { DemoNote } from "@/components/PageHeader";
+import ReviewActions from "@/components/ReviewActions";
 import { StarRow } from "@/components/Stars";
 import { fetchMyCheckIns } from "@/lib/data";
+import { formatRating } from "@/lib/rating";
 import { useSession } from "@/lib/session";
 import { timeAgo } from "@/lib/time";
 import type { FeedItem, Source } from "@/lib/types";
@@ -24,7 +26,7 @@ export default function ActivityPage() {
 
   return (
     <>
-      <PageHeader title="Activity" eyebrow="Your pours" />
+      <PageHeader title="Activity" eyebrow={items ? `Your pours · ${items.length}` : "Your pours"} />
       {source === "demo" && <DemoNote />}
 
       {!sessionLoading && !user && (
@@ -49,7 +51,7 @@ export default function ActivityPage() {
       {items && items.length > 0 && (
         <ul>
           {items.map((item) => (
-            <li key={item.id} className="flex items-center gap-3 border-b border-border px-4 py-4">
+            <li key={item.id} className="flex items-center gap-1 border-b border-border py-3 pr-1 pl-4">
               <div className="min-w-0 flex-1">
                 <p className="eyebrow truncate">{item.producer}</p>
                 <p className="truncate font-display text-[18px] leading-tight">
@@ -58,10 +60,15 @@ export default function ActivityPage() {
                 </p>
                 <p className="mt-0.5 text-xs text-text-muted">{timeAgo(item.createdAt)}</p>
               </div>
-              <div className="flex flex-col items-end gap-1">
+              <div className="mr-2 flex flex-col items-end gap-1">
                 <StarRow value={item.rating} size={13} />
-                <span className="text-xs font-semibold tabular-nums">{item.rating.toFixed(1)}</span>
+                <span className="text-xs font-semibold tabular-nums">{formatRating(item.rating)}</span>
               </div>
+              <ReviewActions
+                item={item}
+                onChange={(next) => setItems((prev) => prev && prev.map((i) => (i.id === next.id ? next : i)))}
+                onDelete={(id) => setItems((prev) => prev && prev.filter((i) => i.id !== id))}
+              />
             </li>
           ))}
         </ul>

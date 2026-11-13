@@ -1,5 +1,7 @@
 "use client";
 
+import { RATING_MAX, RATING_STEP, formatRating } from "@/lib/rating";
+
 const STAR_PATH =
   "M12 2.6l2.8 6.3 6.9.6-5.2 4.5 1.6 6.7L12 17.1l-6.1 3.6 1.6-6.7-5.2-4.5 6.9-.6z";
 
@@ -40,8 +42,9 @@ export function StarRow({ value, size = 14 }: { value: number; size?: number }) 
 }
 
 /**
- * Tap input, 0.5 to 5.0 in half steps.
- * Each star is a 44px cell split into a left half (x.5) and a right half (x.0).
+ * Range slider, 0.25 to 5.00 in quarter steps (0 = not rated).
+ * The native range input gives drag, tap, keyboard and screen-reader support for free;
+ * the stars and the number are just two more views of the same value.
  */
 export function StarInput({
   value,
@@ -51,34 +54,27 @@ export function StarInput({
   onChange: (value: number) => void;
 }) {
   return (
-    <div className="flex items-center justify-between">
-      <div role="group" aria-label="Rating" className="flex">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="relative flex h-12 w-11 items-center justify-center transition-transform duration-150 ease-out has-[button:active]:scale-90"
-          >
-            <Star fraction={value - i} size={32} />
-            <button
-              type="button"
-              aria-label={`${i + 0.5} stars`}
-              aria-pressed={value === i + 0.5}
-              onClick={() => onChange(i + 0.5)}
-              className="absolute inset-y-0 left-0 w-1/2"
-            />
-            <button
-              type="button"
-              aria-label={`${i + 1} stars`}
-              aria-pressed={value === i + 1}
-              onClick={() => onChange(i + 1)}
-              className="absolute inset-y-0 right-0 w-1/2"
-            />
-          </div>
-        ))}
+    <div>
+      <div className="flex items-center justify-between">
+        <span aria-hidden>
+          <StarRow value={value} size={32} />
+        </span>
+        <span className="font-display text-[34px] leading-none tabular-nums text-text-main">
+          {value > 0 ? formatRating(value) : "–"}
+        </span>
       </div>
-      <span className="font-display text-[34px] leading-none tabular-nums text-text-main">
-        {value > 0 ? value.toFixed(1) : "–"}
-      </span>
+      <input
+        type="range"
+        min={0}
+        max={RATING_MAX}
+        step={RATING_STEP}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        aria-label="Rating"
+        aria-valuetext={value > 0 ? `${formatRating(value)} out of 5` : "Not rated"}
+        className="rating-range mt-1"
+        style={{ "--fill": `${(value / RATING_MAX) * 100}%` } as React.CSSProperties}
+      />
     </div>
   );
 }

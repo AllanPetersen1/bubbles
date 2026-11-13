@@ -23,6 +23,8 @@ export type Bottle = {
 export type FeedItem = {
   id: string;
   createdAt: string;
+  /** Author. `user.name` / `user.avatarUrl` are already the resolved display values. */
+  userId: string;
   user: { name: string; avatarUrl: string | null };
   producer: string;
   cuvee: string;
@@ -54,6 +56,22 @@ export type CheckInInput = {
   photos: PhotoPair | null;
   /** Barcode the user scanned, if any: offered back to the crowd-sourced table */
   ean: string | null;
+};
+
+/** The fields an owner can change after posting. The bottle, date and photo stay as posted. */
+export type CheckInEdit = {
+  vintage: number | null;
+  rating: number;
+  dosage: Dosage | null;
+  note: string;
+  venue: string;
+};
+
+/** Autocomplete for what is not a bottle: producers, appellations and areas (village, sub-region, region). */
+export type ReferenceSuggestion = {
+  kind: "producer" | "appellation" | "area";
+  label: string;
+  detail: string | null;
 };
 
 export type Source = "live" | "demo";
