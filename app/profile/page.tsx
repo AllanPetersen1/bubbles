@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Avatar from "@/components/Avatar";
 import PageHeader, { DemoNote } from "@/components/PageHeader";
+import ProfileForm from "@/components/ProfileForm";
 import { fetchMyCheckIns } from "@/lib/data";
 import { useSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
@@ -62,6 +63,8 @@ export default function ProfilePage() {
               </dd>
             </div>
           </dl>
+
+          <ProfileForm user={user} />
 
           {!demo && (
             <button type="button" onClick={signOut} className="btn btn-quiet press mt-8 w-full">

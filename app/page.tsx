@@ -5,9 +5,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import FeedCard from "@/components/FeedCard";
 import PageHeader, { DemoNote } from "@/components/PageHeader";
 import { fetchFeed } from "@/lib/data";
+import { useSession } from "@/lib/session";
 import type { FeedItem, Source } from "@/lib/types";
 
 export default function FeedPage() {
+  const { user } = useSession();
   const [items, setItems] = useState<FeedItem[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -56,12 +58,16 @@ export default function FeedPage() {
     return () => observer.disconnect();
   }, [cursor, done, items.length, loadMore]);
 
+  const onChange = (next: FeedItem) => setItems((prev) => prev.map((i) => (i.id === next.id ? next : i)));
+  const onDelete = (id: string) => setItems((prev) => prev.filter((i) => i.id !== id));
+
   return (
     <>
       <PageHeader
         title="Bubbles"
         right={
-          <Link href="/search" className="btn btn-gold press min-h-11 !px-4">
+          // The sidebar has this button from lg up
+          <Link href="/search" className="btn btn-gold press min-h-11 !px-4 lg:hidden">
             Check in
           </Link>
         }
@@ -70,7 +76,13 @@ export default function FeedPage() {
       {source === "demo" && <DemoNote />}
 
       {items.map((item, i) => (
-        <FeedCard key={item.id} item={item} index={i} />
+        <FeedCard
+          key={item.id}
+          item={item}
+          index={i}
+          onChange={user?.id === item.userId ? onChange : undefined}
+          onDelete={user?.id === item.userId ? onDelete : undefined}
+        />
       ))}
 
       {items.length === 0 && !loading && !error && (

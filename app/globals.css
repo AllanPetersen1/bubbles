@@ -165,6 +165,92 @@ body {
     color: var(--color-background);
   }
 
+  /* Rating slider: the track fills gold up to --fill, set from the value in JS */
+  .rating-range {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    height: 44px; /* touch target; the track itself is thin */
+    background: transparent;
+    cursor: pointer;
+    touch-action: pan-y; /* horizontal drags move the thumb, vertical ones still scroll */
+  }
+  .rating-range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--color-rating-star) var(--fill), var(--color-border) var(--fill));
+  }
+  .rating-range::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--color-rating-star) var(--fill), var(--color-border) var(--fill));
+  }
+  .rating-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 28px;
+    height: 28px;
+    margin-top: -12px; /* centres the thumb on the 4px track */
+    border-radius: 999px;
+    border: 2px solid var(--color-rating-star);
+    background: var(--color-surface);
+    box-shadow: 0 1px 3px rgb(26 26 26 / 0.18);
+    transition: transform 140ms var(--ease-out);
+  }
+  .rating-range::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    border: 2px solid var(--color-rating-star);
+    background: var(--color-surface);
+    box-shadow: 0 1px 3px rgb(26 26 26 / 0.18);
+    transition: transform 140ms var(--ease-out);
+  }
+  .rating-range:active::-webkit-slider-thumb {
+    transform: scale(0.95);
+  }
+  .rating-range:active::-moz-range-thumb {
+    transform: scale(0.95);
+  }
+
+  /* Modal: native <dialog>, so focus trap, Esc and inert background come from the browser.
+     Fades and scales from the centre (a modal is not anchored to a trigger). */
+  .modal {
+    margin: auto;
+    width: min(92vw, 28rem);
+    max-height: 88dvh;
+    padding: 0;
+    overflow: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 2px;
+    background: var(--color-surface);
+    color: var(--color-text-main);
+    opacity: 0;
+    transform: scale(0.96);
+    transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out),
+      overlay 180ms allow-discrete, display 180ms allow-discrete;
+  }
+  .modal[open] {
+    opacity: 1;
+    transform: none;
+  }
+  .modal::backdrop {
+    background: rgb(26 26 26 / 0);
+    transition: background-color 180ms ease, overlay 180ms allow-discrete, display 180ms allow-discrete;
+  }
+  .modal[open]::backdrop {
+    background: rgb(26 26 26 / 0.4);
+  }
+  @starting-style {
+    .modal[open] {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    .modal[open]::backdrop {
+      background: rgb(26 26 26 / 0);
+    }
+  }
+
   .badge {
     display: inline-block;
     padding: 3px 8px;
@@ -209,6 +295,13 @@ body {
     animation-delay: 0ms;
   }
   .press:active {
+    transform: none;
+  }
+  .modal {
+    transform: none;
+  }
+  .rating-range:active::-webkit-slider-thumb,
+  .rating-range:active::-moz-range-thumb {
     transform: none;
   }
 }

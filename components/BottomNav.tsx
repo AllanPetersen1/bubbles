@@ -58,16 +58,22 @@ const ITEMS = [
   },
 ];
 
-export default function BottomNav() {
+/** Check-in is a task, not a tab: it stays under Search */
+function useIsActive() {
   const pathname = usePathname();
-  // Check-in is a task, not a tab: it stays under Search
   const current = pathname.startsWith("/checkin") ? "/search" : pathname;
+  return (href: string) => (href === "/" ? current === "/" : current.startsWith(href));
+}
+
+/** Phone and tablet: tabs along the bottom edge. Hidden from lg up, where SideNav takes over. */
+export default function BottomNav() {
+  const isActive = useIsActive();
 
   return (
-    <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-40">
+    <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
       <ul className="mx-auto flex max-w-md border-x border-t border-border bg-background pb-[env(safe-area-inset-bottom)]">
         {ITEMS.map((item) => {
-          const active = item.href === "/" ? current === "/" : current.startsWith(item.href);
+          const active = isActive(item.href);
           return (
             <li key={item.href} className="flex-1">
               <Link
@@ -87,6 +93,41 @@ export default function BottomNav() {
           );
         })}
       </ul>
+    </nav>
+  );
+}
+
+/** Desktop (lg and up): the same destinations as a left sidebar, plus the check-in button. */
+export function SideNav() {
+  const isActive = useIsActive();
+
+  return (
+    <nav aria-label="Main" className="sticky top-0 hidden h-dvh flex-col px-4 py-6 lg:flex">
+      <p className="px-3 font-display text-[28px] leading-none tracking-[-0.01em]">Bubbles</p>
+      <ul className="mt-8 flex flex-col gap-1">
+        {ITEMS.map((item) => {
+          const active = isActive(item.href);
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={`press flex min-h-11 items-center gap-3 border-l-2 px-3 ${
+                  active
+                    ? "border-brand-primary bg-badge-bg text-text-main"
+                    : "border-transparent text-text-muted [@media(hover:hover)_and_(pointer:fine)]:hover:text-text-main"
+                }`}
+              >
+                {item.icon}
+                <span className="text-[12px] font-semibold uppercase tracking-[0.12em]">{item.label}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+      <Link href="/search" className="btn btn-gold press mt-6">
+        Check in
+      </Link>
     </nav>
   );
 }

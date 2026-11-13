@@ -1,4 +1,4 @@
-import type { Bottle, Dosage, FeedItem } from "./types";
+import type { Bottle, Dosage, FeedItem, ReferenceSuggestion } from "./types";
 
 /*
   Demo data, used when Supabase env vars are missing or a query fails.
@@ -47,6 +47,17 @@ export const MOCK_EANS: Record<string, string[]> = {
 
 export const MOCK_USER = { id: "demo-user", name: "You (demo)", avatarUrl: null };
 
+/** Demo-mode stand-ins for the appellations table (see supabase/seed-reference.sql). */
+const MOCK_APPELLATIONS: ReferenceSuggestion[] = [
+  { kind: "appellation", label: "Champagne AOC", detail: "Champagne · France" },
+  { kind: "appellation", label: "Crémant d'Alsace", detail: "Alsace · France" },
+  { kind: "appellation", label: "Crémant de Loire", detail: "Loire · France" },
+  { kind: "appellation", label: "Franciacorta DOCG", detail: "Lombardy · Italy" },
+  { kind: "appellation", label: "Trento DOC", detail: "Trentino · Italy" },
+  { kind: "appellation", label: "Cava DO", detail: "Catalonia · Spain" },
+  { kind: "appellation", label: "Sussex PDO", detail: "Sussex · England" },
+];
+
 type Seed = {
   who: string;
   bottle: string;
@@ -83,6 +94,7 @@ export function buildMockFeed(now = Date.now()): FeedItem[] {
     return {
       id: `mock-${i}`,
       createdAt: new Date(now - s.minutesAgo * 60_000).toISOString(),
+      userId: `mock-${s.who}`,
       user: { name: s.who, avatarUrl: null },
       producer: bottle.producer,
       cuvee: bottle.name,
@@ -131,7 +143,7 @@ export function mockSearch(query: string, limit = 20): Bottle[] {
   const q = normalise(query);
   if (q.length < 2) return [];
   return MOCK_BOTTLES.map((bottle) => {
-    const haystack = normalise(`${bottle.producer} ${bottle.name}`);
+    const haystack = normalise(`${bottle.producer} ${bottle.name} ${bottle.region ?? ""}`);
     const contains = haystack.includes(q) ? 0.5 : 0;
     // best match of the query against any single word, for typo tolerance
     const wordHit = Math.max(0, ...haystack.split(" ").map((w) => similarity(q, w)));
@@ -141,4 +153,30 @@ export function mockSearch(query: string, limit = 20): Bottle[] {
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map((r) => r.bottle);
+}
+
+/** Best word-level match of the query inside a label, like word_similarity() in suggest_reference(). */
+function labelScore(q: string, label: string): number {
+  const text = normalise(label);
+  if (text.includes(q)) return 1;
+  return Math.max(0, ...text.split(" ").map((w) => similarity(q, w)));
+}
+
+export function mockSuggest(query: string, limit = 6): ReferenceSuggestion[] {
+  const q = normalise(query);
+  if (q.length < 2) return [];
+  const producers = [...new Set(MOCK_BOTTLES.map((b) => b.producer))].map<ReferenceSuggestion>((label) => ({
+    kind: "producer",
+    label,
+    detail: MOCK_BOTTLES.find((b) => b.producer === label)?.region ?? null,
+  }));
+  const areas = [...new Set(MOCK_BOTTLES.map((b) => b.region).filter((r): r is string => !!r))].map<ReferenceSuggestion>(
+    (label) => ({ kind: "area", label, detail: null }),
+  );
+  return [...producers, ...areas, ...MOCK_APPELLATIONS]
+    .map((s) => ({ s, score: labelScore(q, s.label) }))
+    .filter((r) => r.score >= 0.4)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((r) => r.s);
 }
