@@ -18,8 +18,8 @@ With no environment variables the app runs in **demo mode**: mock bottles and fe
 ## Go live with Supabase
 
 1. Create a Supabase project.
-2. In the SQL editor run, in order: `supabase/schema.sql`, `supabase/upgrade-1.sql`, `supabase/seed.sql`, `supabase/seed-reference.sql`.
-   Already running an older schema? Run `upgrade-1.sql` and `seed-reference.sql` only (both are safe to re-run).
+2. In the SQL editor run, in order: `supabase/schema.sql`, `supabase/upgrade-1.sql`, `supabase/upgrade-2.sql`, `supabase/seed.sql`, `supabase/seed-reference.sql`.
+   Already running an older schema? Run `upgrade-1.sql`, `upgrade-2.sql` and `seed-reference.sql` only (all are safe to re-run).
 3. Authentication → Providers → enable Google. Add your site URL and `http://localhost:3000` to the redirect URLs.
 4. Copy `.env.example` to `.env.local` and fill in the project URL and publishable (anon) key.
 
@@ -39,6 +39,7 @@ If a Supabase call fails, the screen falls back to demo data and shows a "Demo d
 | `components/CheckInCard.tsx` | The connected check-in card: notes → photo → rating → vintage → dosage → where. Used by the check-in page and the edit dialog |
 | `components/ReviewActions.tsx` | Edit and delete (dialog + confirmation) for your own check-ins |
 | `components/ProfileForm.tsx` | Custom display name and photo |
+| `supabase/upgrade-2.sql` | Security hardening: insert column grants, photo path check, check-in rate limit, storage quota, closed producer/bottle inserts |
 | `supabase/upgrade-1.sql` | Quarter-star ratings, custom profile fields, appellations, suggest function, owner-only column grants |
 | `supabase/seed-reference.sql` | Appellations, villages / sub-regions, more producers and cuvées |
 | `supabase/schema.sql` | Tables, trigram search, RLS, storage policies |
