@@ -41,6 +41,7 @@ function CheckInForm() {
       await submitCheckIn({ bottle, ...toEdit(draft), photos: draft.photos, ean });
       router.push("/");
     } catch (err) {
+      console.error("[bubbles] check-in failed", err);
       setError(
         err instanceof NotSignedInError
           ? err.message

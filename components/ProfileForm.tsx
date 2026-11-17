@@ -45,6 +45,7 @@ export default function ProfileForm({ user }: { user: SessionUser }) {
       setAvatar(undefined);
       setMessage({ text: "Saved.", ok: true });
     } catch (err) {
+      console.error("[bubbles] profile save failed", err);
       setMessage({
         text:
           err instanceof NotSignedInError
